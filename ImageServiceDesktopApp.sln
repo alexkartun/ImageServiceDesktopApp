@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2015
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageServiceDesktopApp", "ImageServiceDesktopApp\ImageServiceDesktopApp.csproj", "{3AA57254-C32F-484A-B387-A748277D8CFC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3AA57254-C32F-484A-B387-A748277D8CFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AA57254-C32F-484A-B387-A748277D8CFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AA57254-C32F-484A-B387-A748277D8CFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AA57254-C32F-484A-B387-A748277D8CFC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1EAD53CF-5659-4C2E-BF9B-2FE40A124A03}
+	EndGlobalSection
+EndGlobal
