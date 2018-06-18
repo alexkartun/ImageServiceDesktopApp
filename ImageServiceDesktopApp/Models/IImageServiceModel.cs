@@ -4,7 +4,10 @@ namespace ImageServiceDesktopApp.Models
 {
     public interface IImageServiceModel
     {
-        string AddFile(string[] args, out MessageTypeEnum result);
-        string TransferFile(string[] args, out MessageTypeEnum result);
+        /// <summary>
+        /// Add image to OutputDir directory and Thumbnail directory.
+        /// </summary>
+        /// <param name="args">Arguments of the image</param>
+        void AddFile(string[] args);
     }
 }

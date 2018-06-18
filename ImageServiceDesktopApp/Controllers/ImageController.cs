@@ -15,15 +15,14 @@ namespace ImageServiceDesktopApp.Controllers
             /// Creates an enum-ICommand dictionary. 
             commands = new Dictionary<CommandEnum, ICommand>()
             {
-                { CommandEnum.NewFileCommand, new NewFileCommand(iModal) },
-                { CommandEnum.TransferFileCommand, new TransferFileCommand(iModal) }
+                { CommandEnum.NewFileCommand, new NewFileCommand(iModal) }
             };
         }
 
-        public string ExecuteCommand(CommandEnum commandID, string[] args, out MessageTypeEnum status)
+        public void ExecuteCommand(CommandEnum commandID, string[] args)
         {
             ICommand command = commands[commandID];
-            return command.Execute(args, out status);
+            command.Execute(args);
         }
     }
 }

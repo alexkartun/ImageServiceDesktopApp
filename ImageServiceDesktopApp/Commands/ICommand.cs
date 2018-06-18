@@ -4,6 +4,10 @@ namespace ImageServiceDesktopApp.Commands
 {
     public interface ICommand
     {
-        string Execute(string[] args, out MessageTypeEnum result);
+        /// <summary>
+        /// Execute command.
+        /// </summary>
+        /// <param name="args">Arguments for the command.</param>
+        void Execute(string[] args);
     }
 }

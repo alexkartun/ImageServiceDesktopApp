@@ -55,10 +55,9 @@ namespace ImageServiceDesktopApp
 
             ILoggingService imageLogger = new LoggingService();
             imageLogger.MessageRecieved += OnMsg;
-            IImageController imageController = new ImageController(new ImageServiceModel());
+            IImageController imageController = new ImageController(new ImageServiceModel(imageLogger));
 
-            imageServer = new ImageServer(imageLogger, imageController);
-
+            imageServer = new ImageServer(imageController);
         }
 
         [DllImport("advapi32.dll", SetLastError = true)]
@@ -103,11 +102,21 @@ namespace ImageServiceDesktopApp
 
         }
 
+        /// <summary>
+        /// On message recieved update the write entry of event logger.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="message">Message recieved with status.</param>
         private void OnMsg(object sender, MessageRecievedEventArgs message)
         {
             eventLogger.WriteEntry(message.Message, ConvertStatToEventLogEntry(message.Status));
         }
 
+        /// <summary>
+        /// Convert MessageTypeEnum to EventLogEntryType.
+        /// </summary>
+        /// <param name="status">status to convert.</param>
+        /// <returns></returns>
         private static EventLogEntryType ConvertStatToEventLogEntry(MessageTypeEnum status)
         {
             if (status == MessageTypeEnum.INFO) return EventLogEntryType.Information;

@@ -48,7 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\ICommand.cs" />
-    <Compile Include="Commands\TransferFileCommand.cs" />
+    <Compile Include="Communication\Handlers\ClientHandler.cs" />
+    <Compile Include="Communication\Handlers\IClientHandler.cs" />
     <Compile Include="Infastructure\Enums\CommandEnum.cs" />
     <Compile Include="Infastructure\Models\CommandRecievedEventArgs.cs" />
     <Compile Include="Commands\NewFileCommand.cs" />

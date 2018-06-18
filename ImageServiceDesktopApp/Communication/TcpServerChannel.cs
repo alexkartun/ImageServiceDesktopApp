@@ -1,12 +1,8 @@
-﻿using ImageServiceDesktopApp.Commands.Models;
-using ImageServiceDesktopApp.Loggers;
-using ImageServiceDesktopApp.Loggers.Models;
+﻿using ImageServiceDesktopApp.Communication.Handlers;
 using System;
 using System.Configuration;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ImageServiceDesktopApp.Communication
@@ -14,75 +10,48 @@ namespace ImageServiceDesktopApp.Communication
     public class TcpServerChannel : ITcpServerChannel
     {
         private TcpListener server;
-        private ILoggingService log;
-        public event EventHandler<CommandRecievedEventArgs> CommandRecieved;
+        private IClientHandler clientHandler;
 
-        public TcpServerChannel(ILoggingService logger)
+        public TcpServerChannel()
         {
-            log = logger;
             string ip = ConfigurationManager.AppSettings["Ip"];
             string port = ConfigurationManager.AppSettings["Port"];
 
-            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ip), Int32.Parse(port));
-            server = new TcpListener(ep);
+            server = new TcpListener(IPAddress.Any, Int32.Parse(port));
+            clientHandler = new ClientHandler();
         }
 
         public void Start()
         {
-            server.Start();
-            new Task(() =>
+            try
             {
-                while (true)
+                server.Start();
+                new Task(() =>
                 {
-                    try
+                    while (true)
                     {
-                        log.Log("strt listening", MessageTypeEnum.FAIL);
-                        TcpClient client = server.AcceptTcpClient();
-                        log.Log("accepted cient", MessageTypeEnum.FAIL);
-                        HandleClient(client);
+                        try
+                        {
+                            TcpClient client = server.AcceptTcpClient();
+                            clientHandler.HandleClient(client);
+                        }
+                        catch (SocketException e)
+                        {
+                            Console.WriteLine(e.Message);
+                            break;
+                        }
                     }
-                    catch (SocketException e)
-                    {
-                        Console.WriteLine(e.Message);
-                        break;
-                    }
-                }
-            }).Start();
+                }).Start();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }            
         }
 
         public void Stop()
         {
             server.Stop();
-        }
-
-        private void HandleClient(TcpClient client)
-        {
-            new Task(() =>
-            {
-                try
-                {
-                    NetworkStream stream = stream = client.GetStream();
-                    BinaryReader reader = reader = new BinaryReader(stream);
-                    while (true)
-                    {
-                        int bytesSize = reader.ReadInt32();
-                        log.Log(bytesSize.ToString(), MessageTypeEnum.FAIL);
-                        byte[] bytesArray = reader.ReadBytes(bytesSize);
-                        string stringFromBytes = Encoding.ASCII.GetString(bytesArray);
-                        log.Log(stringFromBytes, MessageTypeEnum.FAIL);
-                        CommandRecieved(this, new CommandRecievedEventArgs(CommandEnum.TransferFileCommand, new string[] { stringFromBytes }));
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-                finally
-                {
-                    client.Close();
-                }
-
-            }).Start();
         }
     }
 }

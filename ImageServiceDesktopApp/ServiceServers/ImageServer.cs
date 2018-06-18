@@ -11,21 +11,20 @@ namespace ImageServiceDesktopApp.ServiceServers
 {
     public class ImageServer : IImageServer
     {
-
-        private ILoggingService loggingService;
         private IImageController imageController;
         private ITcpServerChannel channel;
         private List<IDirectoryHandler> directoryHandlers;
 
-        public ImageServer(ILoggingService logger, IImageController controller)
+        public ImageServer(IImageController controller)
         {
-            loggingService = logger;
             imageController = controller;
             CreateHandlers();
-            channel = new TcpServerChannel(loggingService);
-            channel.CommandRecieved += OnCommandRecieved;
+            channel = new TcpServerChannel();
         }
 
+        /// <summary>
+        /// Create all handlers.
+        /// </summary>
         private void CreateHandlers()
         {
             directoryHandlers = new List<IDirectoryHandler>();
@@ -54,6 +53,9 @@ namespace ImageServiceDesktopApp.ServiceServers
             channel.Stop();
         }
 
+        /// <summary>
+        /// Start listening to handlers.
+        /// </summary>
         private void StartHandlers()
         {
             foreach (IDirectoryHandler handler in directoryHandlers)
@@ -62,6 +64,9 @@ namespace ImageServiceDesktopApp.ServiceServers
             }
         }
 
+        /// <summary>
+        /// Stop listening to handlers.
+        /// </summary>
         private void StopHandlers()
         {
             foreach (IDirectoryHandler handler in directoryHandlers)
@@ -70,10 +75,14 @@ namespace ImageServiceDesktopApp.ServiceServers
             }
         }
 
+        /// <summary>
+        /// On command recieved event execute command via controller.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="c_args">Command arguments.</param>
         private void OnCommandRecieved(object sender, CommandRecievedEventArgs c_args)
         {
-            string output = imageController.ExecuteCommand(c_args.Command, c_args.Args, out MessageTypeEnum status);
-            loggingService.Log(output, status);
+            imageController.ExecuteCommand(c_args.Command, c_args.Args);
         }
     }
 }

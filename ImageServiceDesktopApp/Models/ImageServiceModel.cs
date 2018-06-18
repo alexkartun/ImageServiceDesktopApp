@@ -1,4 +1,5 @@
 ﻿using ImageServiceDesktopApp.Commands.Models;
+using ImageServiceDesktopApp.Loggers;
 using ImageServiceDesktopApp.Loggers.Models;
 using System;
 using System.Configuration;
@@ -12,47 +13,23 @@ namespace ImageServiceDesktopApp.Models
 {
     public class ImageServiceModel : IImageServiceModel
     {
+        private ILoggingService loggingService;
         private string m_OutputFolder;
         private string m_ThumbnailFolder;
         private int m_thumbnailSize;
 
-        public ImageServiceModel()
+        public ImageServiceModel(ILoggingService logger)
         {
+            loggingService = logger;
+
             m_OutputFolder = ConfigurationManager.AppSettings["OutputDir"];
             m_ThumbnailFolder = Path.Combine(m_OutputFolder, "Thumbnails");
 
             m_thumbnailSize = Int32.Parse(ConfigurationManager.AppSettings["ThumbnailSize"]);
         }
 
-        public string TransferFile(string[] args, out MessageTypeEnum result)
+        public void AddFile(string[] args)
         {
-            result = MessageTypeEnum.INFO;
-            try
-            {
-                string handler = ConfigurationManager.AppSettings["Handlers"].Split(';')[0];
-                byte[] byteArray = Encoding.ASCII.GetBytes(args[0]);
-                Image img = ByteArrayToImage(byteArray);
-                img.Save(handler);
-            }
-            catch (Exception)
-            {
-                result = MessageTypeEnum.FAIL;
-            }
-
-            return "Got command: " + (CommandEnum.TransferFileCommand).ToString() + " Args: " + args[0];
-        }
-
-        private static Image ByteArrayToImage(byte[] byteArray)
-        {
-            using (MemoryStream mStream = new MemoryStream(byteArray))
-            {
-                return Image.FromStream(mStream);
-            }
-        }
-
-        public string AddFile(string[] args, out MessageTypeEnum result)
-        {
-            result = MessageTypeEnum.INFO;
             string fullPath = args[0];
             string fileName = args[1];
 
@@ -64,7 +41,8 @@ namespace ImageServiceDesktopApp.Models
                     dir.Attributes = FileAttributes.Hidden;
                     Directory.CreateDirectory(m_ThumbnailFolder);
                 }
-                DateTime creation = GetDateTakenFromImage(fullPath, ref result);
+
+                DateTime creation = GetDateTakenFromImage(fullPath);
                 string picPathDir = CreateDateDirectory(m_OutputFolder, creation);
                 string thumbnailPathDir = CreateDateDirectory(m_ThumbnailFolder, creation);
                 string destFilePath = Path.Combine(picPathDir, fileName);
@@ -72,23 +50,27 @@ namespace ImageServiceDesktopApp.Models
                 // Exists a picture with same name. Renaming current pic.
                 if (File.Exists(destFilePath))
                 {
-                    result = MessageTypeEnum.FAIL;
+                    File.Delete(fullPath);
+                    loggingService.Log("Image: " + fileName + " is already exist.", MessageTypeEnum.FAIL);
                 }
                 else
                 {
                     File.Move(fullPath, destFilePath);
                     CreateThumbnail(destFilePath, thumbnailPathDir, fileName);
                 }
-
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                result = MessageTypeEnum.FAIL;
+                loggingService.Log("Error: " + e.Message, MessageTypeEnum.FAIL);
             }
-
-            return "Got command: " + (CommandEnum.NewFileCommand).ToString() + " Args: " + args[0] + ", " + args[1];
         }
 
+        /// <summary>
+        /// Create date directory in OutputDir directory.
+        /// </summary>
+        /// <param name="srcPath">Source path of the image.</param>
+        /// <param name="d">Date time of the image.</param>
+        /// <returns>Path to created directory.</returns>
         private static string CreateDateDirectory(string srcPath, DateTime d)
         {
             string month = d.Month.ToString();
@@ -98,19 +80,29 @@ namespace ImageServiceDesktopApp.Models
             return datePathDir;
         }
 
-
+        /// <summary>
+        /// Create thumbnail.
+        /// </summary>
+        /// <param name="picPath">Path of image.</param>
+        /// <param name="thumbDest">Path to destination for saving thumbnail.</param>
+        /// <param name="name">Name of the image.</param>
         private void CreateThumbnail(string picPath, string thumbDest, string name)
         {
-            Image image = Image.FromFile(picPath);
-            Image thumb = image.GetThumbnailImage(
-                m_thumbnailSize, m_thumbnailSize, () => false, IntPtr.Zero);
-            thumb.Save(Path.Combine(thumbDest, name));
-            image.Dispose();
-            thumb.Dispose();
+            using (Image image = Image.FromFile(picPath))
+            using (Image thumb = image.GetThumbnailImage(
+                m_thumbnailSize, m_thumbnailSize, () => false, IntPtr.Zero))
+            {
+                thumb.Save(Path.Combine(thumbDest, name));
+            }
         }
 
         private static Regex r = new Regex(":");
-        public static DateTime GetDateTakenFromImage(string path, ref MessageTypeEnum status)
+        /// <summary>
+        /// Get date time of image.
+        /// </summary>
+        /// <param name="path">Path of image.</param>
+        /// <returns>Date time of image.</returns>
+        private DateTime GetDateTakenFromImage(string path)
         {
             try
             {
@@ -122,10 +114,11 @@ namespace ImageServiceDesktopApp.Models
                     return DateTime.Parse(dateTaken);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                status = MessageTypeEnum.WARNING;
+                Console.WriteLine(e.Message);
             }
+
             return File.GetCreationTime(path);
         }
     }

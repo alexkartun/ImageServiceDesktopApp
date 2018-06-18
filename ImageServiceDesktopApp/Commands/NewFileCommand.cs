@@ -12,9 +12,9 @@ namespace ImageServiceDesktopApp.Commands
             imageModal = modal;
         }
 
-        public string Execute(string[] args, out MessageTypeEnum result)
+        public void Execute(string[] args)
         {
-            return imageModal.AddFile(args, out result);
+            imageModal.AddFile(args);
         }
     }
 }
